@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Keys</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+<body>
+    <div class="flex flex-col items-center justify-center min-h-screen py-2">
+        <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md my-8 border border-gray-200">
+            <div class="flex justify-between items-center">
+                <h3 class="text-gray-800 text-2xl font-semibold">API Keys</h3>
+                <button id="add-key" class="p-2 bg-indigo-500 text-white rounded-lg">
+                    <i class="fas fa-plus"></i> Add
+                </button>
+            </div>
+            <div id="keys" class="mt-8">
+            </div>
+            <div class="mt-4 flex justify-end gap-4">
+                <button id="delete-selected" class="p-2 bg-red-500 text-white rounded-lg">Delete</button>
+                <button class="rounded-lg p-2 bg-indigo-500 text-white">Next</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const keysContainer = document.getElementById('keys');
+            const deleteSelectedBtn = document.getElementById('delete-selected');
+            
+            fetchApiKeys();
+
+            document.getElementById('add-key').addEventListener('click', function () {
+                addApiKey();
+            });
+
+            deleteSelectedBtn.addEventListener('click', function () {
+                deleteSelectedKeys();
+            });
+
+            function fetchApiKeys() {
+                fetch('/api/keys')
+                    .then(response => response.json())
+                    .then(keys => {
+                        keysContainer.innerHTML = '';
+                        keys.forEach(key => {
+                            const keyEntry = createKeyEntry(key);
+                            keysContainer.appendChild(keyEntry);
+                        });
+                    })
+                    .catch(error => console.error('Error fetching API keys:', error));
+            }
+            function createKeyEntry(key) {
+                const keyEntry = document.createElement('div');
+                keyEntry.className = 'flex items-center justify-between border-b border-gray-200 py-4';
+
+                const keyInfo = document.createElement('div');
+                keyInfo.className = 'flex items-center';
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.className = 'mr-4 rounded-lg border-gray-300 border-2 focus:outline-none focus:ring-2 focus:ring-indigo-500';
+
+                const keyText = document.createElement('p');
+                keyText.textContent = key;
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'p-2 bg-red-500 text-white rounded-lg';
+                deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+                deleteBtn.addEventListener('click', function () {
+                    fetch('/api/deletekeys', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(key)
+                    })
+                    .then(response => response.text())
+                    .then(data => console.log(data))
+                    .catch(error => console.error('Error deleting API key:', error));
+
+                    console.log('Delete key:', key);
+                    window.location.reload();
+                });
+
+                keyInfo.appendChild(checkbox);
+                keyInfo.appendChild(keyText);
+                keyEntry.appendChild(keyInfo);
+                keyEntry.appendChild(deleteBtn);
+
+                return keyEntry;
+            }
+            function deleteSelectedKeys() {
+                const selectedCheckboxes = document.querySelectorAll('#keys input:checked');
+                const selectedKeys = Array.from(selectedCheckboxes).map(checkbox => {
+                    return checkbox.nextElementSibling.textContent.trim();
+                });
+
+                if (selectedKeys.length === 0) {
+                    alert('Please select at least one key to delete.');
+                    return;
+                }
+                fetch('/api/deletekeys', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(selectedKeys)
+                }).then(response => response.text())
+                .then(data => console.log(data))
+                .catch(error => console.error('Error deleting API keys:', error));
+                console.log('Delete keys:', selectedKeys);
+                window.location.reload();
+            }
+            function addApiKey() {
+                const key = prompt('Enter a new API key');
+                fetch('/api/addkeys', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(key)
+                }).then(response => response.text()).catch(error => console.error('Error adding API key:', error));
+                console.log(JSON.stringify(key));
+                window.location.reload();
+            }
+        });
+    </script>
+</body>
+</html>
