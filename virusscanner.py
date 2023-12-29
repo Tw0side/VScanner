@@ -3,9 +3,16 @@ import socket
 from urllib.parse import urlparse
 import json
 
+def getapikey():
+	url = "http://127.0.0.1:5000/random_api"
+	response = requests.get(url)
+	apikey = json.loads(response.text)
+	apikey = apikey[0][0]
+	return apikey
+
 print("Enter url :")
 link=input();
-api=input("Enter your api key: ")
+api=getapikey()
 domain=urlparse(link).netloc
 ip=socket.gethostbyname(domain)
 
