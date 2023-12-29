@@ -4,7 +4,7 @@ This tool is a Scanner tool created with the help of virus total API..
 
  To install followthe given steps
 
-    sudo git clone https://github.com/Tw0side/VScanner-v1.0.0.git
+    https://github.com/Tw0side/VScanner.git
 
 if locked follow the steps
 
